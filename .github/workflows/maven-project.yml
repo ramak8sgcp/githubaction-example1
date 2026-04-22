@@ -25,7 +25,7 @@ jobs:
       - name: Ensure Maven is installed
         run: |
           if ! command -v mvn &> /dev/null; then
-            echo "Maven not found. Installing.."
+            echo "Maven not found. Installing..."
             sudo dnf install -y maven
           else
             echo "Maven is already installed"
