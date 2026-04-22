@@ -52,28 +52,43 @@ jobs:
           name: myapp
           path: target/*.war
 
+      # 7. SonarQube Analysis (using Maven plugin)
+      - name: SonarQube Analysis
+        env:
+          SONAR_HOST: ${{ secrets.SONAR_HOST }}
+          SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          echo "Checking SonarQube connectivity..."
+          curl -I $SONAR_HOST
+
+          mvn sonar:sonar \
+            -Dsonar.projectKey=hotstar \
+            -Dsonar.host.url=$SONAR_HOST \
+            -Dsonar.login=$SONAR_LOGIN
+
   deploy:
     runs-on: [self-hosted, linux]
     needs: build
-    environment: prod
+    environment: production
 
     steps:
-      # 7. Download WAR artifact
+      # 8. Download WAR artifact
       - name: Download WAR artifact
         uses: actions/download-artifact@v4
         with:
           name: myapp
 
-      # 8. Deploy WAR via Tomcat Manager
+      # 9. Deploy WAR via Tomcat Manager
       - name: Deploy to Tomcat
         run: |
           WAR_FILE=$(ls *.war)
           echo "Deploying $WAR_FILE to Tomcat..."
+
           curl -v -u ${{ secrets.TOMCAT_USER }}:${{ secrets.TOMCAT_PASSWORD }} \
           --upload-file "$WAR_FILE" \
           "http://${{ secrets.TOMCAT_HOST }}/manager/text/deploy?path=/myapp&update=true"
 
-      # 9. Verify deployment
+      # 10. Verify deployment
       - name: Verify deployment
         run: |
           curl -I http://${{ secrets.TOMCAT_HOST }}/myapp
